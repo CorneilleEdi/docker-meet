@@ -1,0 +1,43 @@
+FROM node:16-alpine as builder
+
+RUN  apk add curl bash
+
+# install node-prune (https://github.com/tj/node-prune)
+RUN curl -sfL https://install.goreleaser.com/github.com/tj/node-prune.sh | bash -s -- -b /usr/local/bin
+
+
+WORKDIR /usr/src/app
+
+COPY package.json yarn.lock ./
+
+RUN yarn --frozen-lockfile
+
+COPY . /usr/src/app/
+
+RUN yarn build
+
+RUN npm prune --production
+
+# run node prune
+RUN /usr/local/bin/node-prune
+
+# remove unused dependencies
+RUN rm -rf node_modules/rxjs/src/
+RUN rm -rf node_modules/rxjs/bundles/
+RUN rm -rf node_modules/rxjs/_esm5/
+RUN rm -rf node_modules/rxjs/_esm2015/
+RUN rm -rf node_modules/swagger-ui-dist/*.map
+
+# ---
+
+FROM node:16-alpine
+
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/src/app/package*.json /usr/src/app/
+COPY --from=builder /usr/src/app/yarn.lock /usr/src/app/
+COPY --from=builder /usr/src/app/dist/ /usr/src/app/dist/
+COPY --from=builder /usr/src/app/node_modules/ /usr/src/app/node_modules/
+
+
+CMD ["node", "dist/main.js"]

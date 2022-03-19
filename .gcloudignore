@@ -1,0 +1,9 @@
+.github/
+.github
+*.md
+compose-blog/
+compose-blog
+
+**/node_modules
+
+**/dist
