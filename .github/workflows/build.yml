@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: corneilleedi/expresso-multistages
+  IMAGE_NAME: corneilleedi/expresso-multistages-actions
 
 jobs:
   build-and-push-image:
